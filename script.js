@@ -132,15 +132,27 @@ labelSumInterest.textContent = `${interest}€`;
 
 //Idea: reduce
 /////////////////////////////////////////////////
-const calcDesplayBalance = function(movements){
-const balance =  movements.reduce(function(acc,mov){
+const calcDesplayBalance = function(acc){
+ acc.balance =  acc.movements.reduce(function(acc,mov){
 
   return acc + mov
   },0);
-labelBalance.textContent = `${balance}€`;
+labelBalance.textContent = `${acc.balance}€`;
 };
 
+const updateUI = function(acc){
 
+  //Info: Display movement
+ DisplayMovements(acc.movements);
+
+ //Info: Display balance
+calcDesplayBalance(acc);
+
+
+//Info: Display summary
+calcDisplaySummary(acc); 
+
+}
 
 //Idea: Event-Handlers
 /////////////////////////////////////////////////
@@ -149,8 +161,28 @@ let currentAccount;
 btnLogin.addEventListener('click',function(e){
 e.preventDefault();
 currentAccount = accounts.find((acc) => acc.username === inputLoginUsername.value);
-;
+
 console.log(currentAccount);
+
+
+btnTransfer.addEventListener('click', function(e){
+  e.preventDefault();
+  const amount = Number(inputTransferAmount.value);
+  const receiverAcc = accounts.find(acc=> acc.username === inputTransferTo.value);
+
+  inputTransferAmount.value = inputTransferTo.value = '';
+  if(receiverAcc && amount >0 && currentAccount.balance >= amount && currentAccount?.username !== receiverAcc.username){
+
+    currentAccount.movements.push(-amount);
+    receiverAcc.movements.push(amount); 
+    
+    //Note: Update UI
+    updateUI(currentAccount);
+    
+  }
+  
+
+})
 
 
 /* if(currentAccount && currentAccount.pin === Number(inputLoginPin.value)){
@@ -169,15 +201,8 @@ inputLoginPin.blur();
   labelWelcome.textContent = `Welcome back, ${currentAccount.owner.split(' ')[0]}`;
 containerApp.style.opacity = 100;
 
-//Info: Display movement
- DisplayMovements(currentAccount.movements);
-
- //Info: Display balance
-calcDesplayBalance(currentAccount.movements);
-
-
-//Info: Display summary
-calcDisplaySummary(currentAccount); 
+//Note: Update UI
+updateUI(currentAccount);
 
 
 
