@@ -92,7 +92,6 @@ const DisplayMovements = function (movements) {
 
 }
 
-DisplayMovements(account1.movements);
 
 //Idea: map
 /////////////////////////////////////////////////
@@ -110,17 +109,17 @@ createUsernames(accounts);
 //Idea: Chaining
 /////////////////////////////////////////////////
 
-const calcDisplaySummary = function(movements){
+const calcDisplaySummary = function(acc){
 
-const incomes = movements.filter(mov => mov > 0).reduce((acc,mov)=> acc+ mov)
+const incomes = acc.movements.filter(mov => mov > 0).reduce((acc,mov)=> acc+ mov)
 labelSumIn.textContent = `${incomes}€`
 
-const out = movements.filter(mov => mov < 0).reduce((acc,mov)=> acc+mov);
+const out = acc.movements.filter(mov => mov < 0).reduce((acc,mov)=> acc+mov);
 labelSumOut.textContent = `${Math.abs(out)}€`
 
-const interest = movements
+const interest = acc.movements
 .filter(mov => mov > 0)
-.map(deposit => deposit * 1.2 /100)
+.map(deposit => deposit * acc.interestRate /100)
 .filter((deposit,i,arr)=>{
   console.log(arr);
   return deposit >= 1;
@@ -129,13 +128,6 @@ const interest = movements
 .reduce((acc,int)=> acc+int);
 labelSumInterest.textContent = `${interest}€`;
 }
-
-calcDisplaySummary(account1.movements);
-
-
-
-
-
 
 
 //Idea: reduce
@@ -148,4 +140,48 @@ const balance =  movements.reduce(function(acc,mov){
 labelBalance.textContent = `${balance}€`;
 };
 
-calcDesplayBalance(account1.movements);
+
+
+//Idea: Event-Handlers
+/////////////////////////////////////////////////
+
+let currentAccount;
+btnLogin.addEventListener('click',function(e){
+e.preventDefault();
+currentAccount = accounts.find((acc) => acc.username === inputLoginUsername.value);
+;
+console.log(currentAccount);
+
+
+/* if(currentAccount && currentAccount.pin === Number(inputLoginPin.value)){
+  console.log("LOGIN");
+  
+} */
+
+//Hack: best way to privent [undefined]
+if(currentAccount?.pin === Number(inputLoginPin.value)){
+
+//Idea: Clear input fields
+inputLoginUsername.value = inputLoginPin.value = ''; 
+inputLoginPin.blur();
+
+//Info: Display UI and message
+  labelWelcome.textContent = `Welcome back, ${currentAccount.owner.split(' ')[0]}`;
+containerApp.style.opacity = 100;
+
+//Info: Display movement
+ DisplayMovements(currentAccount.movements);
+
+ //Info: Display balance
+calcDesplayBalance(currentAccount.movements);
+
+
+//Info: Display summary
+calcDisplaySummary(currentAccount); 
+
+
+
+}
+
+
+});
