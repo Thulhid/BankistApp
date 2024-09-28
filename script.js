@@ -75,9 +75,14 @@ const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 //Idea: insertAdjacentHTML
 /////////////////////////////////////////////////
-const DisplayMovements = function (movements) {
+const displayMovements = function (movements, sort = false) {
   containerMovements.innerHTML = '';
-  movements.forEach(function (ele, i) {
+
+  //Idea: Sort - Ascending
+
+  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+
+  movs.forEach(function (ele, i) {
     const type = ele > 0 ? `deposit` : `withdrawal`;
     const html = `<div class="movements__row">
           <div class="movements__type movements__type--${type}">${
@@ -141,7 +146,7 @@ const calcDesplayBalance = function (acc) {
 
 const updateUI = function (acc) {
   //Info: Display movement
-  DisplayMovements(acc.movements);
+  displayMovements(acc.movements);
 
   //Info: Display balance
   calcDesplayBalance(acc);
@@ -244,4 +249,12 @@ btnLogin.addEventListener('click', function (e) {
     //Note: Update UI
     updateUI(currentAccount);
   }
+});
+
+//Hack: swiching button
+let sorted = false;
+btnSort.addEventListener('click', function () {
+  displayMovements(currentAccount.movements, !sorted);
+
+  sorted = !sorted;
 });
