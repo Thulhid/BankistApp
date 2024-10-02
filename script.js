@@ -103,6 +103,13 @@ const formatMovementDate = function (date, locale) {
 
   return new Intl.DateTimeFormat(locale).format(date);
 };
+//Idea: Formatting currencies
+const formatCur = function (value, locale, currency) {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+  }).format(value);
+};
 
 //Idea: insertAdjacentHTML
 /////////////////////////////////////////////////
@@ -119,12 +126,20 @@ const displayMovements = function (acc, sort = false) {
     const date = new Date(acc.movementsDates[i]);
     const displayDate = formatMovementDate(date, acc.locale);
     const type = ele > 0 ? `deposit` : `withdrawal`;
+
+    const formattedMov = formatCur(ele, acc.locale, acc.currency);
+
+    /*   new Intl.NumberFormat(acc.locale, {
+      style: 'currency',
+      currency: acc.currency,
+    }).format(ele); */
+
     const html = `<div class="movements__row">
           <div class="movements__type movements__type--${type}">${
       i + 1
     } ${type}</div>
               <div class="movements__date">${displayDate}</div>
-          <div class="movements__value">${ele.toFixed(2)}€</div>
+          <div class="movements__value">${formattedMov}</div>
       </div>`;
 
     containerMovements.insertAdjacentHTML('afterbegin', html);
@@ -153,12 +168,13 @@ const calcDisplaySummary = function (acc) {
   const incomes = acc.movements
     .filter(mov => mov > 0)
     .reduce((acc, mov) => acc + mov);
-  labelSumIn.textContent = `${incomes.toFixed(2)}€`;
+
+  labelSumIn.textContent = formatCur(incomes, acc.locale, acc.currency);
 
   const out = acc.movements
     .filter(mov => mov < 0)
     .reduce((acc, mov) => acc + mov);
-  labelSumOut.textContent = `${Math.abs(out.toFixed(2))}€`;
+  labelSumOut.textContent = formatCur(Math.abs(out), acc.locale, acc.currency);
 
   const interest = acc.movements
     .filter(mov => mov > 0)
@@ -168,7 +184,7 @@ const calcDisplaySummary = function (acc) {
       return deposit >= 1;
     })
     .reduce((acc, int) => acc + int);
-  labelSumInterest.textContent = `${interest.toFixed(2)}€`;
+  labelSumInterest.textContent = formatCur(interest, acc.locale, acc.currency);
 };
 
 //Idea: reduce
@@ -177,7 +193,7 @@ const calcDesplayBalance = function (acc) {
   acc.balance = acc.movements.reduce(function (acc, mov) {
     return acc + mov;
   }, 0);
-  labelBalance.textContent = `${acc.balance.toFixed(2)}€`;
+  labelBalance.textContent = formatCur(acc.balance, acc.locale, acc.currency);
 };
 
 const updateUI = function (acc) {
@@ -333,3 +349,6 @@ btnSort.addEventListener('click', function () {
 
   sorted = !sorted;
 });
+
+console.log(Number('23'));
+console.log(+'23');
