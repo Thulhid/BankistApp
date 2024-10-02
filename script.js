@@ -87,7 +87,7 @@ const currencies = new Map([
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 //Idea: Date Formatting
-const formatMovementDate = function (date) {
+const formatMovementDate = function (date, locale) {
   const calcDaysPassed = (date1, date2) =>
     Math.round(Math.abs(date1 - date2) / (1000 * 60 * 60 * 24));
 
@@ -96,12 +96,12 @@ const formatMovementDate = function (date) {
   if (daysPassed === 0) return 'Today';
   if (daysPassed === 1) return 'Yesterday';
   if (daysPassed <= 7) return `${daysPassed} days ago`;
-  else {
-    const day = `${date.getDate()}`.padStart(2, 0);
-    const month = `${date.getMonth() + 1}`.padStart(2, 0);
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  }
+  /* const day = `${date.getDate()}`.padStart(2, 0);
+  const month = `${date.getMonth() + 1}`.padStart(2, 0);
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`; */
+
+  return new Intl.DateTimeFormat(locale).format(date);
 };
 
 //Idea: insertAdjacentHTML
@@ -117,7 +117,7 @@ const displayMovements = function (acc, sort = false) {
 
   movs.forEach(function (ele, i) {
     const date = new Date(acc.movementsDates[i]);
-    const displayDate = formatMovementDate(date);
+    const displayDate = formatMovementDate(date, acc.locale);
     const type = ele > 0 ? `deposit` : `withdrawal`;
     const html = `<div class="movements__row">
           <div class="movements__type movements__type--${type}">${
@@ -283,7 +283,7 @@ btnLogin.addEventListener('click', function (e) {
   
 } */
 
-  //Hack: best way to privent [undefined]
+  //Hack: best way to prevent [undefined]
   if (currentAccount?.pin === +inputLoginPin.value) {
     //Idea: Clear input fields
     inputLoginUsername.value = inputLoginPin.value = '';
@@ -296,16 +296,31 @@ btnLogin.addEventListener('click', function (e) {
     containerApp.style.opacity = 100;
 
     //Idea:Create current date and time (DAY/ MONTH/ YEAR)
-    const now = new Date();
+    /*const now = new Date();
 
-    const day = `${now.getDate()}`.padStart(2, 0);
+     const day = `${now.getDate()}`.padStart(2, 0);
     const month = `${now.getMonth() + 1}`.padStart(2, 0);
 
     const year = now.getFullYear();
     const hour = `${now.getHours()}`.padStart(2, 0);
     const min = `${now.getMinutes()}`.padStart(2, 0);
     labelDate.textContent = `${day}/${month}/${year}, ${hour}:${min}`;
+ */
+    //Idea: Experimenting with API
+    const now = new Date();
+    const options = {
+      hour: 'numeric',
+      minute: 'numeric',
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
+      // weekday: 'long',
+    };
 
+    labelDate.textContent = Intl.DateTimeFormat(
+      currentAccount.locale,
+      options
+    ).format(now);
     //Note: Update UI
     updateUI(currentAccount);
   }
