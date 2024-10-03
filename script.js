@@ -4,7 +4,7 @@
 /////////////////////////////////////////////////
 // BANKIST APP
 
-// DIFFERENT DATA! Contains movement dates, currency and loca le
+// DIFFERENT DATA! Contains movement dates, currency and locale
 
 const account1 = {
   owner: 'Jonas Schmedtmann',
@@ -207,15 +207,38 @@ const updateUI = function (acc) {
   calcDisplaySummary(acc);
 };
 
+const startLogOutTimer = function () {
+  const tick = function () {
+    const min = String(Math.trunc(time / 60)).padStart(2, 0);
+    const sec = String(time % 60).padStart(2, 0);
+    //In each call, print remaining time to UI
+    labelTimer.textContent = `${min}:${sec}`;
+
+    //when 0 seconds, stop timer and log out user
+    if (time === 0) {
+      clearInterval(timer);
+      labelWelcome.textContent = 'Log in to get started';
+      containerApp.style.opacity = 0;
+    }
+    //Decries 1s
+    time--;
+  };
+  //Set time to 5 minutes
+  let time = 120;
+  //Call the timer every second
+  tick();
+  const timer = setInterval(tick, 1000);
+  return timer;
+};
 //Idea: Event-Handlers
 /////////////////////////////////////////////////
 
-let currentAccount;
+let currentAccount, timer;
 
 //HACK: FAKE ALWAYS LOGGED IN
-currentAccount = account1;
+/* currentAccount = account1;
 updateUI(currentAccount);
-containerApp.style.opacity = 100;
+containerApp.style.opacity = 100; */
 
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault();
@@ -223,81 +246,11 @@ btnLogin.addEventListener('click', function (e) {
     acc => acc.username === inputLoginUsername.value
   );
 
-  console.log(currentAccount);
+  //Hack: Clear existing timer
+  if (timer) clearInterval(timer);
+  timer = startLogOutTimer();
 
-  btnTransfer.addEventListener('click', function (e) {
-    e.preventDefault();
-    const amount = +inputTransferAmount.value;
-    const receiverAcc = accounts.find(
-      acc => acc.username === inputTransferTo.value
-    );
 
-    inputTransferAmount.value = inputTransferTo.value = '';
-    if (
-      receiverAcc &&
-      amount > 0 &&
-      currentAccount.balance >= amount &&
-      currentAccount?.username !== receiverAcc.username
-    ) {
-      currentAccount.movements.push(-amount);
-      receiverAcc.movements.push(amount);
-
-      //Info: adding date
-      currentAccount.movementsDates.push(new Date().toISOString());
-      receiverAcc.movementsDates.push(new Date().toISOString());
-
-      //Note: Update UI
-      updateUI(currentAccount);
-    }
-  });
-
-  //Idea: some
-
-  btnLoan.addEventListener('click', function (e) {
-    e.preventDefault();
-
-    const amount = Math.floor(+inputLoanAmount.value);
-    if (
-      amount > 0 &&
-      currentAccount.movements.some(mov => mov >= amount * 0.1)
-    ) {
-      //add account
-      currentAccount.movements.push(amount);
-
-      //Info: adding date
-      currentAccount.movementsDates.push(new Date().toISOString());
-
-      //update UI
-      updateUI(currentAccount);
-    }
-
-    inputLoanAmount.value = '';
-  });
-
-  btnClose.addEventListener('click', function (e) {
-    e.preventDefault();
-    if (
-      currentAccount.username === inputCloseUsername.value &&
-      currentAccount.pin === +inputClosePin.value
-    ) {
-      //Idea: findIndex
-      const index = accounts.findIndex(
-        acc => currentAccount.username === acc.username
-      );
-
-      //Note: delete account
-      accounts.splice(index, 1);
-
-      //Note: Hide UI
-      containerApp.style.opacity = 0;
-    }
-    inputCloseUsername.value = inputClosePin.value = '';
-  });
-
-  /* if(currentAccount && currentAccount.pin === Number(inputLoginPin.value)){
-  console.log("LOGIN");
-  
-} */
 
   //Hack: best way to prevent [undefined]
   if (currentAccount?.pin === +inputLoginPin.value) {
@@ -342,7 +295,82 @@ btnLogin.addEventListener('click', function (e) {
   }
 });
 
-//Hack: swiching button
+btnClose.addEventListener('click', function (e) {
+  e.preventDefault();
+  if (
+    currentAccount.username === inputCloseUsername.value &&
+    currentAccount.pin === +inputClosePin.value
+  ) {
+    //Idea: findIndex
+    const index = accounts.findIndex(
+      acc => currentAccount.username === acc.username
+    );
+
+    //Note: delete account
+    accounts.splice(index, 1);
+
+    //Note: Hide UI
+    containerApp.style.opacity = 0;
+  }
+  inputCloseUsername.value = inputClosePin.value = '';
+});
+
+//Idea: some
+
+btnLoan.addEventListener('click', function (e) {
+  e.preventDefault();
+
+  const amount = Math.floor(+inputLoanAmount.value);
+  if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
+    setTimeout(function () {
+      //add account
+      currentAccount.movements.push(amount);
+
+      //Info: adding date
+      currentAccount.movementsDates.push(new Date().toISOString());
+
+      //update UI
+      updateUI(currentAccount);
+    }, 2500);
+  }
+
+  inputLoanAmount.value = '';
+
+  //Note: Reset the timer
+  clearInterval(timer);
+  timer = startLogOutTimer();
+});
+btnTransfer.addEventListener('click', function (e) {
+  e.preventDefault();
+  const amount = +inputTransferAmount.value;
+  const receiverAcc = accounts.find(
+    acc => acc.username === inputTransferTo.value
+  );
+
+  inputTransferAmount.value = inputTransferTo.value = '';
+  if (
+    receiverAcc &&
+    amount > 0 &&
+    currentAccount.balance >= amount &&
+    currentAccount?.username !== receiverAcc.username
+  ) {
+    currentAccount.movements.push(-amount);
+    receiverAcc.movements.push(amount);
+
+    //Info: adding date
+    currentAccount.movementsDates.push(new Date().toISOString());
+    receiverAcc.movementsDates.push(new Date().toISOString());
+
+    //Note: Update UI
+    updateUI(currentAccount);
+
+    //Note: Reset the timer
+    clearInterval(timer);
+    timer = startLogOutTimer();
+  }
+});
+
+//Hack: switching button
 let sorted = false;
 btnSort.addEventListener('click', function () {
   displayMovements(currentAccount, !sorted);
